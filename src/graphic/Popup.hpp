@@ -1,0 +1,48 @@
+////////////////////////////////////////////////////////////
+//
+// Simca
+// Copyright (C) 2011 Orhan Donovan ( dorhan@epsi.fr )
+//
+// - Author : Orhan Donovan.
+// - Create : 14/05/2011.
+// - Desc.  : Popup
+//
+////////////////////////////////////////////////////////////
+
+
+#ifndef H_POPUP
+#define H_POPUP
+
+////////////////////////////////////////////////////////////
+// Headers
+////////////////////////////////////////////////////////////
+#include "../utils/defines.hpp"
+#include "../utils/library.hpp"
+
+#include <SFML/Graphics.hpp>
+#include "./cpGUI/cpGUI.h"
+
+class Popup
+{
+    public:
+        // Constructor / Destructor.
+        Popup();
+        virtual ~Popup();
+        virtual int Display();
+
+    protected:
+        // sfml window
+    	sf::RenderWindow* popup;
+    	// Create a GuiContainer to contain all of the controls we create.
+    	// This is used mainly for setting focus.
+    	cp::cpGuiContainer cpGui;
+    	// Largeur et hauteur du popup (Taille fixee dans les filles)
+        unsigned int  width;
+        unsigned int  height;
+        // Background
+        sf::Image* myGroundTexture;
+
+        void tondreLeGazon();
+};
+
+#endif

@@ -1,0 +1,32 @@
+////////////////////////////////////////////////////////////
+//
+// Simca
+// Copyright (C) 2011 Orhan Donovan ( dorhan@epsi.fr )
+//
+// - Author : Orhan Donovan.
+// - Desc.  : A Crossroad
+//
+////////////////////////////////////////////////////////////
+
+#ifndef ROAD_HPP_
+#define ROAD_HPP_
+
+#include "Entity.hpp"
+
+class Road : public Entity, public Drawable
+{
+    public:
+        Road();
+        ~Road();
+
+        // Initialisation de l'element
+        void Init();
+
+        // Méthode permettant la mise à jour de l'élément
+        void Update();
+
+    private:
+
+};
+
+#endif /* ROAD_HPP_ */

@@ -1,0 +1,91 @@
+////////////////////////////////////////////////////////////
+//
+// Simca
+// Copyright (C) 2011 Orhan Donovan ( sybrix44@gmail.com )
+//
+// - Author : Orhan Donovan.
+// - Create : 04/02/2011.
+// - Desc.  : Main of Graphic Engine
+//
+////////////////////////////////////////////////////////////
+
+
+#ifndef H_GRAPHICENGINE
+#define H_GRAPHICENGINE
+
+////////////////////////////////////////////////////////////
+// Headers
+////////////////////////////////////////////////////////////
+#include "../engine/Engine.hpp"
+
+#include "../behavior/BehaviorEngine.hpp"
+#include "../physic/PhysicEngine.hpp"
+
+#include "../utils/defines.hpp"
+#include "../utils/Singleton.hpp"
+
+//#include <SFML/Graphics.hpp>
+#include "types/Drawable.hpp"
+#include "Gui.hpp"
+#include "ImageManager.hpp"
+#include "PopupLoad.hpp"
+#include "PopupConfig.hpp"
+
+class GraphicEngine : public Engine, public Singleton<GraphicEngine>
+{
+    // Singleton
+    friend class Singleton<GraphicEngine>;
+
+    public:
+
+        // Constructor / Destructor.
+        GraphicEngine();
+        virtual ~GraphicEngine();
+
+        // Main of the graphic engine.
+        virtual void Frame();
+
+        // Add drawable
+        void AddDrawable( Drawable *drawable );
+
+        // Clear map of drawable
+        void Clear();
+
+        // Get the window
+        sf::RenderWindow* GetWindow();
+
+        // Get the camera
+        sf::View& GetCamera() const;
+
+        // Get the GUI
+        Gui* GetGui();
+
+        void OpenPopupLoad();
+        void OpenPopupConfig();
+
+    private:
+
+        // The window
+        sf::RenderWindow myWindow;
+
+        // Default font
+        sf::Font myFont;
+
+        // Default camera
+        sf::View& myCamera;
+
+        // All entities who will be draw.
+        std::vector<Drawable*> myDrawables;
+
+        // Ground
+        sf::Image* myGroundTexture;
+
+        // Main
+        sf::Image* myMainTexture;
+
+        // Gui
+        Gui myGui;
+};
+
+#endif
+

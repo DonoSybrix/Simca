@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/51/trunk/src/graphic/module_animation
+END
+Frame.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/51/trunk/src/graphic/module_animation/Frame.hpp
+END
+Animation.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/7/trunk/src/graphic/module_animation/Animation.cpp
+END
+Animated.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/7/trunk/src/graphic/module_animation/Animated.cpp
+END
+Animation.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/51/trunk/src/graphic/module_animation/Animation.hpp
+END
+Animated.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/51/trunk/src/graphic/module_animation/Animated.hpp
+END
+Frame.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/7/trunk/src/graphic/module_animation/Frame.cpp
+END

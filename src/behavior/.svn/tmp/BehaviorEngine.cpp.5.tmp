@@ -1,0 +1,581 @@
+////////////////////////////////////////////////////////////
+// Headers
+////////////////////////////////////////////////////////////
+#include "BehaviorEngine.hpp"
+
+////////////////////////////////////////////////////////////
+/// Default constructor
+////////////////////////////////////////////////////////////
+BehaviorEngine::BehaviorEngine() : myPlay(true), mode(0), isEditingCrossRoad(false), mySimulationSpeed(1.0f)
+{
+    Init();
+}
+
+////////////////////////////////////////////////////////////
+/// Default destructor
+////////////////////////////////////////////////////////////
+BehaviorEngine::~BehaviorEngine()
+{
+
+}
+
+////////////////////////////////////////////////////////////
+/// Init game engine
+////////////////////////////////////////////////////////////
+void BehaviorEngine::Init()
+{
+    myCurrentTrafficLight = NULL;
+    myData.Load("Map 1");
+}
+
+////////////////////////////////////////////////////////////
+///
+///    Heart of the game engine.
+///    Do action for all objects.
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::Frame()
+{
+    // User's Events
+    Events();
+
+    // Gestion de la simulation
+    PlaySimulation();
+}
+
+
+////////////////////////////////////////////////////////////
+///
+///    Events of user
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::Events()
+{
+    // Utiles a la methode
+    GraphicEngine *graphic      = GraphicEngine::getInstance();
+    Gui* gui                    = graphic->GetGui();
+    sf::RenderWindow *window    = graphic->GetWindow();
+    const sf::Input  &input     = window->GetInput();
+    bool leftButtonDown         = input.IsMouseButtonDown(sf::Mouse::Left);
+
+    // Variables propres aux evenements
+    unsigned int mouseX  = input.GetMouseX();
+    unsigned int mouseY  = input.GetMouseY();
+    sf::Event Event;
+
+    while ( window->GetEvent(Event) )
+    {
+        // Clique sur la croix de la fenetre
+        if ( Event.Type == sf::Event::Closed )
+            Stop();
+
+        // Appuie sur le clavier
+        if ( Event.Type == sf::Event::KeyReleased )
+        {
+                // Touche Echap on quitte le programme
+                if( Event.Key.Code == sf::Key::Escape )
+                    Stop();
+
+                // --------
+                // -> Tests
+                // --------
+                if( Event.Key.Code == sf::Key::D )
+                 {
+                	// Demo de la classe networkEngine
+					std::cout<<"---- Demo de networkEngine ----"<<std::endl;
+					this->network->Demo() ;
+                 }
+                if( Event.Key.Code == sf::Key::L )
+                {
+                    std::vector<Entity*>* entities = myData.GetEntities();
+                    currentEditingEntity =  entities->at(0);
+                }
+
+                if( Event.Key.Code == sf::Key::E )
+                {
+                    std::vector<Entity*>* entities = myData.GetEntities();
+                    currentEditingEntity =  entities->back();
+                }
+        }
+
+        // Appui sur un boutton de la souris
+        if( Event.Type == sf::Event::MouseButtonPressed )
+        {
+            currentEditingEntity = GetElementUnderMouse( mouseX, mouseY );
+            int icon = FindClickOnToolBar( mouseX, mouseY );
+            switch( icon )
+            {
+<<<<<<< .mine
+
+            }
+            if( icon == 2 )
+            {
+                mySimulationSpeed = 1.0f;
+            }
+            if( icon == 3 )
+            {
+                mySimulationSpeed = 0;
+            }
+            if( icon == 4 )
+            {
+
+            }
+            if( icon == 5 )
+            {
+=======
+            case 1:
+            	break;
+            case 2:
+            	break;
+            case 3:
+            	break;
+            case 4:
+            	break;
+            case 5:
+>>>>>>> .r69
+             	this->mode = 1;
+				this->graphic->OpenPopupLoad();
+                break;
+            case 6:
+            	// Demo de la generation de pdf
+            	std::cout<<"---- Demo de pdfLatex ----"<<std::endl;
+            	Simulation* simu = this->network->GetSimulation(1);
+				Pdf* pdf = new Pdf(simu);
+				pdf->Generate();
+				pdf->View();
+				break;
+            }
+        }
+
+        // Relache un boutton de la souris
+        if( Event.Type == sf::Event::MouseButtonReleased )
+        {
+            currentEditingEntity = NULL;
+            isEditingCrossRoad   = false;
+        }
+    }
+
+    // Actions sur les éléments
+    if( leftButtonDown ) {
+
+        if( isEditingCrossRoad ) {
+
+            unsigned int diffY = abs( WINDOW_HEIGHT / 2 - mouseY );
+            unsigned int diffX = abs( WINDOW_WIDTH / 2 - mouseX );
+            unsigned int width = abs(sqrt( ( pow( diffX, 2  ) + pow( diffY, 2 ) * 2 ) )) * 2;
+
+            if( width > 150 ) {
+
+               // Change la taille du rond point
+                Entity* crossroad = myData.GetEntities()->at(0);
+                crossroad->SetWidth( width );
+                crossroad->Update();
+
+                // Parcours les routes
+                std::vector<Road*>* roads   = myData.GetRoads();
+                for( unsigned int i = 0; i < roads->size(); i++ )
+                {
+                    Road* currentRoad = roads->at( i );
+                    currentRoad->Update();
+                }
+            }
+        }
+        // Sinon on édite une route
+        else if ( currentEditingEntity != NULL ) {
+
+            float X1 = WINDOW_WIDTH / 2;
+            float Y1 = WINDOW_HEIGHT / 2;
+            float X2 = mouseX;
+            float Y2 = mouseY;
+
+            float mediumValue   = 1.570796326794897f;
+            float pi            = 4 * atan(1);
+            float rot           = atan2((Y1 - Y2), (X2 - X1)) * (180/pi);
+            float rotation      = 0.0f;
+
+            if (X1 <  X2)       rotation = rot;
+            if (X1 >= X2)       rotation = -mediumValue - (mediumValue - rot);
+            if( Y2 > Y1 )       rotation += 360;
+
+            currentEditingEntity->SetRadius( rotation );
+            currentEditingEntity->Update();
+        }
+    }
+
+    // Evenement declenchant l'ouverture ou la fermeture du menu du haut
+    if( mouseY < 35 )
+        gui->ShowToolBar();
+    else
+        gui->HideToolBar();
+}
+
+void BehaviorEngine::PlaySimulation()
+{
+    // 0 - Liste des routes
+    std::vector<Road*>* roads   = myData.GetRoads();
+
+    // 1 - Gestion des feux de signalisation
+    ManageTrafficLight();
+
+    // 2 - Gestion des voitures
+    ManageCars();
+
+    // 3 - Gestion des voitures sur le rond point
+    ManageDirtyCars();
+
+    // Final : Mise à jour global de la scène
+    for( unsigned int i = 0; i < roads->size(); i++ )
+    {
+        Road* currentRoad = roads->at( i );
+        currentRoad->Update();
+    }
+
+    /// Ajout d'une voiture dans une route au hasard
+    // TODO : Utiliser les données depuis la BDD au lieu de l'aléatoire (Voir data.cpp)
+    // Ajout d'une voiture de temps en temps (pour les tests)
+    /// -------------------------------------------
+    static sf::Clock tempClock;
+    float timeBetweenCarAdd = 2; // 2 secondes
+    float timeElapsed  = tempClock.GetElapsedTime() * mySimulationSpeed;
+    if( timeElapsed > timeBetweenCarAdd )
+    {
+        unsigned int roadNumber     = sf::Randomizer::Random(0, roads->size() - 1);
+        unsigned int exitNumber     = sf::Randomizer::Random(0, roads->size() - 1);
+        Road* currentRoad           = roads->at( roadNumber );
+
+        if( currentRoad != NULL )
+        {
+            Car* car = new Car();
+            car->SetRandomColor();
+            car->SetVelocity( sf::Vector2f( -200, 0 ) );
+            car->SetPosition( sf::Vector2f( 700 + (currentRoad->GetCarIn()->size() * (car->GetWidth() * 2)), 0 ) );
+            car->SetExitRoad( exitNumber );
+            car->Update( currentRoad->GetCrossroad()->GetWidth() );
+            graphic->AddDrawable( car );
+            physic->AddBody( car );
+
+            /// Ajout de la voiture dans la route N°1
+            currentRoad->AddCarIn( car );
+            currentRoad->Update();
+            tempClock.Reset();
+        }
+    }
+}
+
+
+
+
+
+
+////////////////////////////////////////////////////////////
+///
+///    gestion des feux de signalisation
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::ManageTrafficLight()
+{
+    std::vector<Road*>* roads   = myData.GetRoads();
+    static bool isWaiting = false;
+
+    if( myCurrentTrafficLight == NULL && roads->size() > 0 ) {
+        myCurrentTrafficLight = roads->at(0)->GetTrafficLight();
+        myTrafficLightClock.Reset();
+    }
+
+    // Parcours les différents routes
+    for( unsigned int i = 0; i < roads->size(); i++ )
+    {
+        Road* currentRoad = roads->at( i );
+        TrafficLights *trafficLights = currentRoad->GetTrafficLight();
+
+        // Si il s'agit du feu atuellement vert
+        if( myCurrentTrafficLight == trafficLights ) {
+
+            // Si on attend le temps entre le changement de feu
+            if( isWaiting ) {
+
+                if( (myTrafficLightClock.GetElapsedTime() * mySimulationSpeed) > myCurrentTrafficLight->GetMySwitchDelay() )
+                {
+                    // Reset du chrono
+                    myTrafficLightClock.Reset();
+                    isWaiting = false;
+
+                    // Changement de feu
+                    unsigned int nextTrafficLight = i + 1;
+                    if( nextTrafficLight > roads->size() - 1) {
+                        nextTrafficLight = 0;
+                    }
+
+                    myCurrentTrafficLight = roads->at( nextTrafficLight )->GetTrafficLight();
+                }
+            }
+            else {
+
+                if( trafficLights->GetState() == false ) {
+                    trafficLights->SetState( true );
+                    myTrafficLightClock.Reset();
+                }
+                else {
+                    if( myTrafficLightClock.GetElapsedTime() > myCurrentTrafficLight->GetMyDelay() ) {
+                        trafficLights->SetState( false );
+                        myTrafficLightClock.Reset();
+                        isWaiting = true;
+                    }
+                }
+            }
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////
+///
+///    Gestion de la circulation
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::ManageCars()
+{
+    std::vector<Road*>* roads   = myData.GetRoads();
+
+    // Mouvement des véhicules
+    for( unsigned int i = 0; i < roads->size(); i++ )
+    {
+        Road* currentRoad = roads->at( i );
+
+        // Récupération sous forme de liste
+        std::vector<Car*> tempCarsList;
+        std::queue<Car*>* originalQueue = currentRoad->GetCarIn();
+        while( !originalQueue->empty() )
+        {
+            tempCarsList.push_back( originalQueue->front() );
+            originalQueue->pop();
+        }
+
+        // Ici on parcours les voitures
+        std::vector<Car*>::iterator j;
+        unsigned int currentPosition = 0;
+        for( j = tempCarsList.begin(); j < tempCarsList.end(); j++ )
+        {
+            // Récupère la vitesse actuelle
+            sf::Vector2f tempVelocity = (*j)->GetVelocity();
+
+            /// Si le feu est rouge
+            if( currentRoad->GetTrafficLight()->GetState() == false ) {
+
+                /// 1 - on récupère la distance max par rapport à la file d'attente (TODO : Modifier suivant taille rond point)
+                unsigned int positionMax = ( currentPosition * 100 ) ;
+
+                /// 2 - On verifie que la voiture ne dépasse pas cette limite
+                if( (*j)->GetPosition().x <= positionMax + 30 ) {
+                   (*j)->SetVelocity( sf::Vector2f( 0, 0 ) );
+                }
+                else if(  (*j)->GetPosition().x > positionMax + 30 && (*j)->GetPosition().x < positionMax + 150 && tempVelocity.x < -30) {
+                    tempVelocity.x += 3;
+                    (*j)->SetVelocity( tempVelocity );
+                }
+            }
+            else {
+                tempVelocity.x -= (5 * (( ( tempCarsList.size() - currentPosition) + 1) * (( tempCarsList.size() - currentPosition) + 1)));
+
+                if( tempVelocity.x < -200 ) {
+                    tempVelocity.x = -200;
+                }
+
+                (*j)->SetVelocity( tempVelocity );
+            }
+
+            // Change la voiture de voie arrivée au rond point
+            if( (*j)->GetPosition().x < -47 ) {
+                currentRoad->PopCar();
+                myDirtyCars.push_back( (*j) );
+
+                if( (*j)->GetExitRoad() == i ) {
+                    (*j)->SetRadius( (*j)->GetRadius() - 360 );
+                }
+            }
+
+            originalQueue->push( (*j) );
+            currentPosition++;
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////
+///
+///    Gestion des voitures au centre
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::ManageDirtyCars()
+{
+    float frameTime = graphic->GetWindow()->GetFrameTime() * mySimulationSpeed;
+    std::vector<Road*>* roads = myData.GetRoads();
+    Entity* crossroad = myData.GetEntities()->at(0);
+    std::vector<Car*>::iterator j;
+
+    for( j = myDirtyCars.begin(); j < myDirtyCars.end(); j++ )
+    {
+        // Variables importantes
+        float myRadius          = (*j)->GetRadius();
+        float roadRadius        = abs(roads->at( (*j)->GetExitRoad() )->GetRadius() );
+        sf::Vector2f velocity   = (*j)->GetVelocity();
+
+        // Sécurités
+        if( roadRadius > 360 ) {
+            roadRadius -= 360 * mySimulationSpeed;
+        }
+
+        if( myRadius > 360 || myRadius > roadRadius + 10 ) {
+            myRadius -= ( 360 + 1 ) * mySimulationSpeed;
+        }
+
+        // 1 - Si elles sont dans le rond point (au bord) on stop leur avancement
+         if( (*j)->GetPosition().x < -180 ) {
+            velocity.x = 0;
+            (*j)->SetVelocity( velocity );
+            velocity.y = 90;
+        }
+
+        if(  myRadius < roadRadius ) {
+            (*j)->SetRadius( myRadius + ( 100 *  frameTime ));
+            velocity.y = 90;
+        }
+        else {
+            velocity.x += 10;
+            (*j)->SetVelocity( velocity );
+            velocity.y = -180;
+        }
+
+        (*j)->Update( crossroad->GetWidth(), (int)velocity.y );
+    }
+}
+
+////////////////////////////////////////////////////////////
+///
+///    Retourne la vitesse de la simulation
+///
+////////////////////////////////////////////////////////////
+float BehaviorEngine::GetMySimulationSpeed() const
+{
+    return mySimulationSpeed;
+}
+
+////////////////////////////////////////////////////////////
+///
+///    Change value of myPlay;
+///    Stop the game.
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::Stop()
+{
+    myPlay   = false;
+}
+
+////////////////////////////////////////////////////////////
+///
+///    Get the state of myPlay
+///
+////////////////////////////////////////////////////////////
+bool BehaviorEngine::IsRunning()
+{
+    return myPlay;
+}
+
+////////////////////////////////////////////////////////////
+/// Get element under mouse
+////////////////////////////////////////////////////////////
+Entity* BehaviorEngine::GetElementUnderMouse( unsigned int mouseX, unsigned int mouseY )
+{
+    std::vector<Entity*>* entities = myData.GetEntities();
+    std::vector<Entity*>::iterator i;
+
+    /// 1 - Verifie clique sur le rond point
+    Entity *crossroad = entities->at( 0 );
+
+    unsigned int diffY = abs( WINDOW_HEIGHT / 2 - mouseY );
+    unsigned int diffX = abs( WINDOW_WIDTH / 2 - mouseX );
+    unsigned int width = abs(sqrt( ( pow( diffX, 2  ) + pow( diffY, 2 ) * 2 ) )) * 2;
+
+    if( crossroad->GetWidth() >= width ) {
+        isEditingCrossRoad = true;
+        return crossroad;
+    }
+
+
+    Entity* finalEntity = NULL;/*
+    float distanceMin = 999999.99f;
+    for ( i = entities->begin(); i != entities->end(); i++ )
+    {
+        if( (*i)->IsDraggable() )
+        {
+            sf::Vector2f position = (*i)->GetPosition();
+
+            float currentDistance = sqrt( abs( ( position.x - mouseX ) * 2 + ( position.y - mouseY ) * 2)  );
+
+            if( currentDistance < distanceMin )
+                finalEntity = (*i);
+        }
+    }
+*/
+    return finalEntity;
+}
+
+
+////////////////////////////////////////////////////////////
+/// Rechreche si l'utilisateur a cliquer sur un element du menu
+////////////////////////////////////////////////////////////
+int BehaviorEngine::FindClickOnToolBar( unsigned int mouseX, unsigned int mouseY )
+{
+    std::vector<sf::Vector2f> elementsPosition;
+    elementsPosition.push_back( sf::Vector2f( 430, 5 ) );
+    elementsPosition.push_back( sf::Vector2f( 456, 5 ) );
+    elementsPosition.push_back( sf::Vector2f( 485, 5 ) );
+    elementsPosition.push_back( sf::Vector2f( 505, 5 ) );
+    elementsPosition.push_back( sf::Vector2f( 530, 5 ) );
+    elementsPosition.push_back( sf::Vector2f( 555, 5 ) );
+    elementsPosition.push_back( sf::Vector2f( 580, 5 ) );
+
+    int cliked = -1 ;
+
+    // Recherche de l'élement cliqué
+    for( unsigned int i = 0; i < elementsPosition.size(); i++ )
+    {
+        if( mouseX >= elementsPosition[i].x &&
+            mouseX <= elementsPosition[i].x + 16 &&
+            mouseY >= 5 &&
+            mouseY <= elementsPosition[i].y + 16 )
+        {
+            std::cout << "Clique sur " << i << std::endl;
+            cliked = i ;
+        }
+    }
+
+    return cliked ;
+
+}
+
+////////////////////////////////////////////////////////////
+///
+/// Clear all the simulation
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::Clear()
+{
+    graphic->Clear();
+    myData.Clear();
+}
+
+////////////////////////////////////////////////////////////
+///
+/// Clear all the simulation
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::setMode(int m)
+{
+    /* Mode
+     * 0 - Launching
+	 * 1 - Crossroad's config ( impossible de lancer une simu / rapport )
+	 * 2 - Simulation's config ( impossible de modifier le rond-point )
+	 * 3 - Playing
+     */
+	if( m < 4 && m >= 0 )
+		this->mode = (unsigned int) m ;
+}

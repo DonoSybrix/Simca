@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 32
+/svn/!svn/ver/66/trunk/src/utils
+END
+Pdf.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/svn/!svn/ver/59/trunk/src/utils/Pdf.hpp
+END
+other.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/svn/!svn/ver/57/trunk/src/utils/other.cpp
+END
+defines.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svn/!svn/ver/66/trunk/src/utils/defines.hpp
+END
+other.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/svn/!svn/ver/57/trunk/src/utils/other.hpp
+END
+Singleton.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/46/trunk/src/utils/Singleton.hpp
+END
+library.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svn/!svn/ver/53/trunk/src/utils/library.hpp
+END
+Pdf.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/svn/!svn/ver/56/trunk/src/utils/Pdf.cpp
+END

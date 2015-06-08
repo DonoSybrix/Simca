@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 30
+/svn/!svn/ver/71/trunk/data/db
+END
+sqlite_empty.db
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/46/trunk/data/db/sqlite_empty.db
+END
+sqlite.db
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/svn/!svn/ver/71/trunk/data/db/sqlite.db
+END

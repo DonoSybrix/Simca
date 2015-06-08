@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 25
+/svn/!svn/ver/51/trunk/so
+END
+libsfml-window.so.1.7
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/51/trunk/so/libsfml-window.so.1.7
+END
+libsfml-network.so.1.7
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/51/trunk/so/libsfml-network.so.1.7
+END
+libsfml-graphics.so.1.7
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/!svn/ver/51/trunk/so/libsfml-graphics.so.1.7
+END
+libsfml-audio.so.1.7
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/51/trunk/so/libsfml-audio.so.1.7
+END
+libsfml-system.so.1.7
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/51/trunk/so/libsfml-system.so.1.7
+END

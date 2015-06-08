@@ -1,0 +1,466 @@
+////////////////////////////////////////////////////////////
+// Headers
+////////////////////////////////////////////////////////////
+#include "BehaviorEngine.hpp"
+
+////////////////////////////////////////////////////////////
+/// Default constructor
+////////////////////////////////////////////////////////////
+BehaviorEngine::BehaviorEngine() : myPlay(true), mode(0), isEditingCrossRoad(false)
+{
+    Init();
+}
+
+////////////////////////////////////////////////////////////
+/// Default destructor
+////////////////////////////////////////////////////////////
+BehaviorEngine::~BehaviorEngine()
+{
+
+}
+
+////////////////////////////////////////////////////////////
+/// Init game engine
+////////////////////////////////////////////////////////////
+void BehaviorEngine::Init()
+{
+    myCurrentTrafficLight = NULL;
+    myData.Load("Map 1");
+}
+
+////////////////////////////////////////////////////////////
+///
+///    Heart of the game engine.
+///    Do action for all objects.
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::Frame()
+{
+    // User's Events
+    Events();
+
+    // Gestion de la simulation
+    PlaySimulation();
+}
+
+
+////////////////////////////////////////////////////////////
+///
+///    Events of user
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::Events()
+{
+    // Utiles a la methode
+    GraphicEngine *graphic      = GraphicEngine::getInstance();
+    Gui* gui                    = graphic->GetGui();
+    sf::RenderWindow *window    = graphic->GetWindow();
+    const sf::Input  &input     = window->GetInput();
+    bool leftButtonDown         = input.IsMouseButtonDown(sf::Mouse::Left);
+
+    // Variables propres aux evenements
+    unsigned int mouseX  = input.GetMouseX();
+    unsigned int mouseY  = input.GetMouseY();
+    sf::Event Event;
+
+    while ( window->GetEvent(Event) )
+    {
+        // Clique sur la croix de la fenetre
+        if ( Event.Type == sf::Event::Closed )
+            Stop();
+
+        // Appuie sur le clavier
+        if ( Event.Type == sf::Event::KeyReleased )
+        {
+                // Touche Echap on quitte le programme
+                if( Event.Key.Code == sf::Key::Escape )
+                    Stop();
+
+                // --------
+                // -> Tests
+                // --------
+                if( Event.Key.Code == sf::Key::D )
+                 {
+                	// Demo de la classe networkEngin
+					std::cout<<"---- Demo de networkEngine ----"<<std::endl;
+					this->network->Demo() ;
+                 }
+                if( Event.Key.Code == sf::Key::L )
+                {
+                	// Demo de la generation de pdf
+                	std::cout<<"---- Demo de pdfLatex ----"<<std::endl;
+                	Simulation* simu = this->network->GetSimulation(1);
+					Pdf* pdf = new Pdf(simu);
+					pdf->Generate();
+					pdf->View();
+
+                }
+                if( Event.Key.Code == sf::Key::G )
+                {
+                	std::cout<<"---- Test de cpGUI ----"<<std::endl;
+                	this->mode = 1;
+                	gui->ShowPopupLoad();
+
+                }
+                if( Event.Key.Code == sf::Key::Z )
+                {
+                    std::vector<Entity*>* entities = myData.GetEntities();
+                    currentEditingEntity =  entities->at(0);
+                }
+
+                if( Event.Key.Code == sf::Key::E )
+                {
+                    std::vector<Entity*>* entities = myData.GetEntities();
+                    currentEditingEntity =  entities->back();
+                }
+        }
+
+        // Appui sur un boutton de la souris
+        if( Event.Type == sf::Event::MouseButtonPressed )
+        {
+            currentEditingEntity = GetElementUnderMouse( mouseX, mouseY );
+            FindClickOnToolBar( mouseX, mouseY );
+        }
+
+        // Relache un boutton de la souris
+        if( Event.Type == sf::Event::MouseButtonReleased )
+        {
+            currentEditingEntity = NULL;
+            isEditingCrossRoad   = false;
+        }
+    }
+
+    // Modification des éléments en live
+    if( leftButtonDown )
+    {
+        // Edition de la taille du rond point
+        if( isEditingCrossRoad ) {
+            // Change la taille du rond point et donc la position des routes et voitures
+            unsigned int diffY = abs( WINDOW_HEIGHT / 2 - mouseY );
+            unsigned int diffX = abs( WINDOW_WIDTH / 2 - mouseX );
+            unsigned int width = abs(sqrt( ( pow( diffX, 2  ) + pow( diffY, 2 ) * 2 ) )) * 2;
+
+            if( width > 100 ) {
+
+                Entity* myCrossRoad = myData.GetEntities()->at(0);
+                myCrossRoad->SetWidth( width );
+                myCrossRoad->Update();
+
+                std::vector<Road*>* roads  = myData.GetRoads();
+                for( unsigned int i = 0; i < roads->size(); i++ ) {
+                    Road* currentRoad = roads->at( i );
+                    currentRoad->Update();
+                }
+
+            }
+        }
+        // Sinon si on edite actuellement une route
+        else if( currentEditingEntity != NULL ) {
+
+        }
+    }
+
+    // Evenement declenchant l'ouverture ou la fermeture du menu du haut
+    if( mouseY < 35 )
+        gui->ShowToolBar();
+    else
+        gui->HideToolBar();
+}
+
+void BehaviorEngine::PlaySimulation()
+{
+    // 0 - Liste des routes
+    std::vector<Road*>* roads   = myData.GetRoads();
+
+    // 1 - Gestion des feux de signalisation
+    ManageTrafficLight();
+
+    // 2 - Gestion des voitures
+    ManageCars();
+
+    // 3 - Gestion des voitures sur le rond point
+    ManageDirtyCars();
+
+    // Final : Mise à jour global de la scène
+    for( unsigned int i = 0; i < roads->size(); i++ )
+    {
+        Road* currentRoad = roads->at( i );
+        currentRoad->Update();
+    }
+
+    /// Ajout d'une voiture dans une route au hasard
+    // TODO : Utiliser les données depuis la BDD au lieu de l'aléatoire (Voir data.cpp)
+    // Ajout d'une voiture de temps en temps (pour les tests)
+    /// -------------------------------------------
+    static sf::Clock tempClock;
+    float timeBetweenCarAdd = 2; // 2 secondes
+    float timeElapsed  = tempClock.GetElapsedTime();
+    if( timeElapsed > timeBetweenCarAdd )
+    {
+        unsigned int roadNumber     = sf::Randomizer::Random(0, roads->size() - 1);
+        unsigned int exitNumber     = sf::Randomizer::Random(0, roads->size() - 1);
+        Road* currentRoad           = roads->at( roadNumber );
+
+        if( currentRoad != NULL )
+        {
+            Car* car = new Car();
+            car->SetRandomColor();
+            car->SetVelocity( sf::Vector2f( -200, 0 ) );
+            car->SetPosition( sf::Vector2f( 700 + (currentRoad->GetCarIn()->size() * (car->GetWidth() * 2)), 0 ) );
+            car->SetExitRoad( exitNumber );
+            car->Update( currentRoad->GetCrossroad()->GetWidth() );
+            graphic->AddDrawable( car );
+            physic->AddBody( car );
+
+            /// Ajout de la voiture dans la route N°1
+            currentRoad->AddCarIn( car );
+            currentRoad->Update();
+            tempClock.Reset();
+        }
+    }
+}
+
+
+
+////////////////////////////////////////////////////////////
+///
+///    gestion des feux de signalisation
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::ManageTrafficLight()
+{
+    std::vector<Road*>* roads   = myData.GetRoads();
+    static bool isWaiting = false;
+
+    if( myCurrentTrafficLight == NULL && roads->size() > 0 ) {
+        myCurrentTrafficLight = roads->at(0)->GetTrafficLight();
+        myTrafficLightClock.Reset();
+    }
+
+    // Parcours les différents routes
+    for( unsigned int i = 0; i < roads->size(); i++ )
+    {
+        Road* currentRoad = roads->at( i );
+        TrafficLights *trafficLights = currentRoad->GetTrafficLight();
+
+        // Si il s'agit du feu atuellement vert
+        if( myCurrentTrafficLight == trafficLights ) {
+
+            // Si on attend le temps entre le changement de feu
+            if( isWaiting ) {
+
+                if( myTrafficLightClock.GetElapsedTime() > myCurrentTrafficLight->GetMySwitchDelay() )
+                {
+                    // Reset du chrono
+                    myTrafficLightClock.Reset();
+                    isWaiting = false;
+
+                    // Changement de feu
+                    unsigned int nextTrafficLight = i + 1;
+                    if( nextTrafficLight > roads->size() - 1) {
+                        nextTrafficLight = 0;
+                    }
+
+                    myCurrentTrafficLight = roads->at( nextTrafficLight )->GetTrafficLight();
+                }
+            }
+            else {
+
+                if( trafficLights->GetState() == false ) {
+                    trafficLights->SetState( true );
+                    myTrafficLightClock.Reset();
+                }
+                else {
+                    if( myTrafficLightClock.GetElapsedTime() > myCurrentTrafficLight->GetMyDelay() ) {
+                        trafficLights->SetState( false );
+                        myTrafficLightClock.Reset();
+                        isWaiting = true;
+                    }
+                }
+            }
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////
+///
+///    Gestion de la circulation
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::ManageCars()
+{
+    std::vector<Road*>* roads   = myData.GetRoads();
+
+    // Mouvement des véhicules
+    for( unsigned int i = 0; i < roads->size(); i++ )
+    {
+        Road* currentRoad = roads->at( i );
+
+        // Récupération sous forme de liste
+        std::vector<Car*> tempCarsList;
+        std::queue<Car*>* originalQueue = currentRoad->GetCarIn();
+        while( !originalQueue->empty() )
+        {
+            tempCarsList.push_back( originalQueue->front() );
+            originalQueue->pop();
+        }
+
+        // Ici on parcours les voitures !
+        std::vector<Car*>::iterator j;
+        unsigned int currentPosition = 0;
+        for( j = tempCarsList.begin(); j < tempCarsList.end(); j++ )
+        {
+            // Récupère la vitesse actuelle
+            sf::Vector2f tempVelocity = (*j)->GetVelocity();
+
+            /// Si le feu est rouge
+            if( currentRoad->GetTrafficLight()->GetState() == false ) {
+
+                /// 1 - on récupère la distance max par rapport à la file d'attente (TODO : Modifier suivant taille rond point)
+                unsigned int positionMax = ( currentPosition * 100 ) ;
+
+                /// 2 - On verifie que la voiture ne dépasse pas cette limite
+                if( (*j)->GetPosition().x <= positionMax + 30 ) {
+                   (*j)->SetVelocity( sf::Vector2f( 0, 0 ) );
+                }
+                else if(  (*j)->GetPosition().x > positionMax + 30 && (*j)->GetPosition().x < positionMax + 150 && tempVelocity.x < -30) {
+                    tempVelocity.x += 3;
+                    (*j)->SetVelocity( tempVelocity );
+                }
+            }
+            else {
+                tempVelocity.x -= (5 * (( ( tempCarsList.size() - currentPosition) + 1) * (( tempCarsList.size() - currentPosition) + 1)));
+
+                if( tempVelocity.x < -200 ) {
+                    tempVelocity.x = -200;
+                }
+
+                (*j)->SetVelocity( tempVelocity );
+            }
+
+            // Change la voiture de voie arrivée au rond point
+            if( (*j)->GetPosition().x < -47 ) {
+                currentRoad->PopCar();
+                myDirtyCars.push_back( (*j) );
+            }
+
+            originalQueue->push( (*j) );
+            currentPosition++;
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////
+///
+///    Gestion des voitures au milieu du rond point
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::ManageDirtyCars()
+{
+    Entity* myCrossRoad = myData.GetEntities()->at(0);
+    std::vector<Car*>::iterator i;
+    for( i  = myDirtyCars.begin(); i < myDirtyCars.end(); i++ )
+    {
+        (*i)->Update( myCrossRoad->GetWidth() );
+    }
+}
+
+////////////////////////////////////////////////////////////
+///
+///    Change value of myPlay;
+///    Stop the game.
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::Stop()
+{
+    myPlay   = false;
+}
+
+////////////////////////////////////////////////////////////
+///
+///    Get the state of myPlay
+///
+////////////////////////////////////////////////////////////
+bool BehaviorEngine::IsRunning()
+{
+    return myPlay;
+}
+
+////////////////////////////////////////////////////////////
+/// Get element under mouse
+////////////////////////////////////////////////////////////
+Entity* BehaviorEngine::GetElementUnderMouse( unsigned int mouseX, unsigned int mouseY )
+{
+    std::vector<Entity*>* entities = myData.GetEntities();
+    std::vector<Entity*>::iterator i;
+
+
+    /// 1 - On regarde si la souris est sur le rond point
+    unsigned int diffY = abs( WINDOW_HEIGHT / 2 - mouseY );
+    unsigned int diffX = abs( WINDOW_WIDTH / 2 - mouseX );
+    unsigned int width = abs(sqrt( ( pow( diffX, 2  ) + pow( diffY, 2 ) * 2 ) / 2 ));
+
+    Entity* crossRoad = entities->at(0);
+    if( width < crossRoad ->GetWidth() / 2 ) {
+        isEditingCrossRoad = true;
+        return crossRoad;
+    }
+
+
+    Entity* finalEntity = NULL;/*
+    float distanceMin = 999999.99f;
+    for ( i = entities->begin(); i != entities->end(); i++ )
+    {
+        if( (*i)->IsDraggable() )
+        {
+            sf::Vector2f position = (*i)->GetPosition();
+
+            float currentDistance = sqrt( abs( ( position.x - mouseX ) * 2 + ( position.y - mouseY ) * 2)  );
+
+            if( currentDistance < distanceMin )
+                finalEntity = (*i);
+        }
+    }
+*/
+    return finalEntity;
+}
+
+
+////////////////////////////////////////////////////////////
+/// Rechreche si l'utilisateur a cliquer sur un element du menu
+////////////////////////////////////////////////////////////
+void BehaviorEngine::FindClickOnToolBar( unsigned int mouseX, unsigned int mouseY )
+{
+    std::vector<sf::Vector2f> elementsPosition;
+    elementsPosition.push_back( sf::Vector2f( 430, 5 ) );
+    elementsPosition.push_back( sf::Vector2f( 456, 5 ) );
+    elementsPosition.push_back( sf::Vector2f( 485, 5 ) );
+    elementsPosition.push_back( sf::Vector2f( 505, 5 ) );
+    elementsPosition.push_back( sf::Vector2f( 530, 5 ) );
+    elementsPosition.push_back( sf::Vector2f( 555, 5 ) );
+    elementsPosition.push_back( sf::Vector2f( 580, 5 ) );
+
+    // Recherche de l'élement cliqué
+    for( unsigned int i = 0; i < elementsPosition.size(); i++ )
+    {
+        if( mouseX >= elementsPosition[i].x &&
+            mouseX <= elementsPosition[i].x + 16 &&
+            mouseY >= 5 &&
+            mouseY <= elementsPosition[i].y + 16 )
+        {
+            std::cout << "Clique sur " << i << std::endl;
+        }
+    }
+
+}
+
+////////////////////////////////////////////////////////////
+///
+/// Clear all the simulation
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::Clear()
+{
+    graphic->Clear();
+    myData.Clear();
+}

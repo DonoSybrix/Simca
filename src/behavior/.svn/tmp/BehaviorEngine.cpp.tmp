@@ -1,0 +1,215 @@
+////////////////////////////////////////////////////////////
+// Headers
+////////////////////////////////////////////////////////////
+#include "BehaviorEngine.hpp"
+
+////////////////////////////////////////////////////////////
+/// Default constructor
+////////////////////////////////////////////////////////////
+BehaviorEngine::BehaviorEngine() : myPlay(true)
+{
+    Init();
+}
+
+////////////////////////////////////////////////////////////
+/// Default destructor
+////////////////////////////////////////////////////////////
+BehaviorEngine::~BehaviorEngine()
+{
+
+}
+
+////////////////////////////////////////////////////////////
+/// Init game engine
+////////////////////////////////////////////////////////////
+void BehaviorEngine::Init()
+{
+    mySimulation.Load("Map 1");
+}
+
+////////////////////////////////////////////////////////////
+///
+///    Heart of the game engine.
+///    Do action for all objects.
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::Frame()
+{
+    // User's Events
+    Events();
+}
+
+
+////////////////////////////////////////////////////////////
+///
+///    Events of user
+///
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::Events()
+{
+    // Utiles
+    GraphicEngine *graphic = GraphicEngine::getInstance();
+    Gui* gui = graphic->GetGui();
+    sf::RenderWindow *window = graphic->GetWindow();
+    const sf::Input  &input  = window->GetInput();
+
+    // Variables propres aux evenements
+    unsigned int mouseX  = input.GetMouseX();
+    unsigned int mouseY  = input.GetMouseY();
+    bool leftButtonDown  = input.IsMouseButtonDown(sf::Mouse::Left);
+    sf::Event Event;
+
+    while ( window->GetEvent(Event) )
+    {
+        // Clique sur la croix de la fenï¿½tre
+        if ( Event.Type == sf::Event::Closed )
+            Stop();
+
+        // Appuie sur le clavier
+        if ( Event.Type == sf::Event::KeyReleased )
+        {
+                // Touche Echap on quitte le programme
+                if ( Event.Key.Code == sf::Key::Escape )
+                    Stop();
+
+                // --------
+                // -> Tests
+                // --------
+                if ( Event.Key.Code == sf::Key::Z )
+                {
+                    std::vector<Entity*>* entities = mySimulation.GetEntities();
+                    currentEditingEntity =  entities->at(1);
+                }
+
+                if ( Event.Key.Code == sf::Key::E )
+                {
+                    std::vector<Entity*>* entities = mySimulation.GetEntities();
+                    currentEditingEntity =  entities->back();
+                }
+        }
+
+
+        // Appui sur un boutton de la souris
+        if( Event.Type == sf::Event::MouseButtonPressed )
+        {
+            currentEditingEntity = GetElementUnderMouse( mouseX, mouseY );
+        }
+
+        // Relache un boutton de la souris
+        if( Event.Type == sf::Event::MouseButtonReleased )
+        {
+            currentEditingEntity = NULL;
+        }
+
+        // Molette de la souris
+        if( Event.Type == sf::Event::MouseWheelMoved )
+        {
+            if( currentEditingEntity != NULL )
+            {
+                /*currentEditingEntity->SetRadius( currentEditingEntity->GetRadius() + ( Event.MouseWheel.Delta * 5 ) );
+                currentEditingEntity->Update();*/
+
+                static float degree = 0;
+                degree += Event.MouseWheel.Delta * 5;
+
+                if( degree > 360 )
+                    degree -= 360;
+                else if( degree < 0 )
+                    degree += 360;
+
+                float radian    = 3.14159265 * degree / 180;
+                float rayon     = 436 / 2;
+                float positionX = cos(radian) * ( rayon + currentEditingEntity->GetWidth() / 2 );
+                float positionY = sin(radian) * ( rayon + currentEditingEntity->GetWidth() / 2 );
+
+                positionX += WINDOW_WIDTH / 2;
+                positionY += WINDOW_HEIGHT / 2;
+
+                std::cout << "Position X : " << positionX << std::endl;
+                std::cout << "Position Y : " << positionY << std::endl;
+
+                currentEditingEntity->SetRadius( degree );
+                currentEditingEntity->SetPosition( positionX, positionY );
+                currentEditingEntity->Update();
+            }
+        }
+    }
+
+    // Evenement dï¿½clenchant l'ouverture ou la fermeture du menu du haut
+    if( mouseY < 35 )
+        gui->ShowTopMain();
+    else
+        gui->HideTopMain();
+
+    // Déplacement des entités
+    /*if( leftButtonDown )
+    {
+        // Déplacement d'un élément en mode clique
+        if( currentEditingEntity != NULL )
+        {
+            currentEditingEntity->SetPosition( mouseX, mouseY );
+            currentEditingEntity->Update();
+        }
+    }*/
+}
+
+////////////////////////////////////////////////////////////
+///
+///    Change value of myPlay;
+///    Stop the game.
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::Stop()
+{
+    myPlay   = false;
+}
+
+////////////////////////////////////////////////////////////
+///
+///    Get the state of myPlay
+///
+////////////////////////////////////////////////////////////
+bool BehaviorEngine::IsRunning()
+{
+    return myPlay;
+}
+
+////////////////////////////////////////////////////////////
+/// Get element under mouse
+////////////////////////////////////////////////////////////
+Entity* BehaviorEngine::GetElementUnderMouse( unsigned int mouseX, unsigned int mouseY )
+{
+    std::vector<Entity*>* entities = mySimulation.GetEntities();
+    std::vector<Entity*>::iterator i;
+
+    Entity* finalEntity = NULL;
+    float distanceMin = 999999.99f;
+    for ( i = entities->begin(); i != entities->end(); i++ )
+    {
+        if( (*i)->IsDraggable() )
+        {
+            sf::Vector2f position = (*i)->GetPosition();
+
+            float currentDistance = sqrt( abs( ( position.x - mouseX ) * 2 + ( position.y - mouseY ) * 2)  );
+
+            std::cout << currentDistance << " --- " << position.x - mouseX <<  std::endl;
+
+            if( currentDistance < distanceMin )
+                finalEntity = (*i);
+        }
+    }
+
+    return finalEntity;
+}
+
+////////////////////////////////////////////////////////////
+///
+/// Clear all the simulation
+///
+////////////////////////////////////////////////////////////
+void BehaviorEngine::Clear()
+{
+    graphic->Clear();
+    mySimulation.Clear();
+}

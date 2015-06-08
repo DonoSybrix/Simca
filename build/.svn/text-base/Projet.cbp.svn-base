@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="Simca" />
+		<Option pch_mode="2" />
+		<Option compiler="gnu_gcc_compiler_4x" />
+		<Build>
+			<Target title="Debug">
+				<Option output="..\bin\Projet-d" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="..\bin" />
+				<Option object_output="..\temp\" />
+				<Option type="1" />
+				<Option compiler="gnu_gcc_compiler_4x" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="..\bin\Projet" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="..\bin" />
+				<Option object_output="..\temp\" />
+				<Option type="1" />
+				<Option compiler="gnu_gcc_compiler_4x" />
+				<Option use_console_runner="0" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Linker>
+			<Add option="-lsfml-graphics-s" />
+			<Add option="-lsfml-window-s" />
+			<Add option="-lsfml-system-s" />
+			<Add option="-WI," />
+			<Add option="-enable-auto-import" />
+			<Add library="mingw32" />
+			<Add library="user32" />
+			<Add library="opengl32" />
+			<Add library="glu32" />
+			<Add library="SQLite" />
+		</Linker>
+		<Unit filename="..\src\base\App.cpp" />
+		<Unit filename="..\src\base\App.hpp" />
+		<Unit filename="..\src\base\main.cpp" />
+		<Unit filename="..\src\base\main.hpp" />
+		<Unit filename="..\src\behavior\BehaviorEngine.cpp" />
+		<Unit filename="..\src\behavior\BehaviorEngine.hpp" />
+		<Unit filename="..\src\behavior\Data.cpp" />
+		<Unit filename="..\src\behavior\Data.hpp" />
+		<Unit filename="..\src\engine\Engine.cpp" />
+		<Unit filename="..\src\engine\Engine.hpp" />
+		<Unit filename="..\src\entities\Car.cpp" />
+		<Unit filename="..\src\entities\Car.hpp" />
+		<Unit filename="..\src\entities\Crossroad.cpp" />
+		<Unit filename="..\src\entities\Crossroad.hpp" />
+		<Unit filename="..\src\entities\EntitiesList.hpp" />
+		<Unit filename="..\src\entities\Entity.cpp" />
+		<Unit filename="..\src\entities\Entity.hpp" />
+		<Unit filename="..\src\entities\Result.cpp" />
+		<Unit filename="..\src\entities\Result.hpp" />
+		<Unit filename="..\src\entities\Road.cpp" />
+		<Unit filename="..\src\entities\Road.hpp" />
+		<Unit filename="..\src\entities\Simulation.cpp" />
+		<Unit filename="..\src\entities\Simulation.hpp" />
+		<Unit filename="..\src\entities\TrafficLights.cpp" />
+		<Unit filename="..\src\entities\TrafficLights.hpp" />
+		<Unit filename="..\src\entities\entitiesList.hpp" />
+		<Unit filename="..\src\graphic\GraphicEngine.cpp" />
+		<Unit filename="..\src\graphic\GraphicEngine.hpp" />
+		<Unit filename="..\src\graphic\Gui.cpp" />
+		<Unit filename="..\src\graphic\Gui.hpp" />
+		<Unit filename="..\src\graphic\ImageManager.cpp" />
+		<Unit filename="..\src\graphic\ImageManager.hpp" />
+		<Unit filename="..\src\graphic\Popup.cpp" />
+		<Unit filename="..\src\graphic\Popup.hpp" />
+		<Unit filename="..\src\graphic\PopupLoad.cpp" />
+		<Unit filename="..\src\graphic\PopupLoad.hpp" />
+		<Unit filename="..\src\graphic\cpGUI\cpButton.h" />
+		<Unit filename="..\src\graphic\cpGUI\cpCheckBox.cpp" />
+		<Unit filename="..\src\graphic\cpGUI\cpCheckBox.h" />
+		<Unit filename="..\src\graphic\cpGUI\cpGUI.h" />
+		<Unit filename="..\src\graphic\cpGUI\cpGUI_base.cpp" />
+		<Unit filename="..\src\graphic\cpGUI\cpGUI_base.h" />
+		<Unit filename="..\src\graphic\cpGUI\cpGuiContainer.h" />
+		<Unit filename="..\src\graphic\cpGUI\cpImageButton.cpp" />
+		<Unit filename="..\src\graphic\cpGUI\cpImageButton.h" />
+		<Unit filename="..\src\graphic\cpGUI\cpObject.h" />
+		<Unit filename="..\src\graphic\cpGUI\cpScrollBar.h" />
+		<Unit filename="..\src\graphic\cpGUI\cpSelection-DropDownBox.cpp" />
+		<Unit filename="..\src\graphic\cpGUI\cpSelection-DropDownBox.h" />
+		<Unit filename="..\src\graphic\cpGUI\cpShapeButton.cpp" />
+		<Unit filename="..\src\graphic\cpGUI\cpShapeButton.h" />
+		<Unit filename="..\src\graphic\cpGUI\cpTextBox.cpp" />
+		<Unit filename="..\src\graphic\cpGUI\cpTextBox.h" />
+		<Unit filename="..\src\graphic\cpGUI\cpTextInputBox.cpp" />
+		<Unit filename="..\src\graphic\cpGUI\cpTextInputBox.h" />
+		<Unit filename="..\src\graphic\module_animation\Animated.cpp" />
+		<Unit filename="..\src\graphic\module_animation\Animated.hpp" />
+		<Unit filename="..\src\graphic\module_animation\Animation.cpp" />
+		<Unit filename="..\src\graphic\module_animation\Animation.hpp" />
+		<Unit filename="..\src\graphic\module_animation\Frame.cpp" />
+		<Unit filename="..\src\graphic\module_animation\Frame.hpp" />
+		<Unit filename="..\src\graphic\types\Drawable.cpp" />
+		<Unit filename="..\src\graphic\types\Drawable.hpp" />
+		<Unit filename="..\src\network\NetworkEngine.cpp" />
+		<Unit filename="..\src\network\NetworkEngine.hpp" />
+		<Unit filename="..\src\network\sqlite3.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\src\network\sqlite3.h" />
+		<Unit filename="..\src\network\sqlite3ext.h" />
+		<Unit filename="..\src\physic\PhysicEngine.cpp" />
+		<Unit filename="..\src\physic\PhysicEngine.hpp" />
+		<Unit filename="..\src\physic\type\PhysicBody.cpp" />
+		<Unit filename="..\src\physic\type\PhysicBody.hpp" />
+		<Unit filename="..\src\utils\Pdf.cpp" />
+		<Unit filename="..\src\utils\Pdf.hpp" />
+		<Unit filename="..\src\utils\Singleton.hpp" />
+		<Unit filename="..\src\utils\defines.hpp" />
+		<Unit filename="..\src\utils\library.hpp" />
+		<Unit filename="..\src\utils\other.cpp" />
+		<Unit filename="..\src\utils\other.hpp" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
